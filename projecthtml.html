@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HTML Quiz</title>
+    <style>
+        body{
+            margin:0;
+            font-family:"Poppins",sans-serif;
+            background:linear-gradient(135deg,#b1d9ff,#d9edff);
+            height:100vh;
+            display:flex;justify-content:center;align-items:center;
+        }
+        .center-page{width:100%;display:flex;justify-content:center;align-items:center;}
+        .box{
+            width:80%;max-width:880px;background:#fff;padding:40px;border-radius:20px;
+            box-shadow:0 0 20px rgba(0,0,0,0.2);
+            border-top:5px solid #2196f3;animation:fade .4s ease-in-out;
+        }
+        @keyframes fade{from{opacity:.3;transform:scale(.97);}to{opacity:1;transform:scale(1);}}
+
+        h1,h2{text-align:center;color:#004f9e;}
+        .btn{
+            padding:13px 22px;background:#2d8cff;color:#fff;border:none;border-radius:10px;
+            cursor:pointer;font-size:18px;margin:10px;font-weight:bold;
+            transition:.25s;box-shadow:0 4px 12px rgba(0,0,0,.3);
+        }
+        .btn:hover{transform:scale(1.08);}
+        
+        .option{
+            padding:14px;background:#e2f1ff;margin:10px 0;border-radius:12px;
+            font-size:18px;border:2px solid transparent;cursor:pointer;transition:.25s;
+        }
+        .option:hover{background:#cfe7ff;}
+        .selected{border-color:#1e90ff;background:#c3e0ff;box-shadow:0 0 10px rgba(0,128,255,0.3);}
+        
+        .score{
+            font-size:35px;color:#0075da;font-weight:700;text-align:center;
+        }
+    </style>
+</head>
+<body>
+
+<!-- START PAGE -->
+<div class="center-page" id="startPage">
+    <div class="box">
+        <h1>💡 HTML Quiz</h1>
+        <p style="text-align:center;font-size:20px;">15 Questions — All Compulsory</p>
+        <div style="text-align:center;margin-top:25px;">
+            <button class="btn" onclick="startQuiz()">Start Quiz 🚀</button>
+        </div>
+    </div>
+</div>
+
+<!-- QUIZ PAGE -->
+<div class="center-page" id="quizPage" style="display:none;">
+    <div class="box">
+        <h2>Question <span id="qNumber">1</span>/15</h2>
+        <h3 id="qText" style="color:#003e7e;"></h3>
+
+        <div id="optionsHere"></div>
+
+        <div style="text-align:center;">
+            <button class="btn" onclick="prevQuestion()">⬅ Previous</button>
+            <button class="btn" onclick="nextQuestion()">Next ➡</button>
+        </div>
+
+        <div style="text-align:center;margin-top:15px;">
+            <button class="btn" onclick="submitQuiz()">Submit ✔</button>
+        </div>
+    </div>
+</div>
+
+<!-- RESULT PAGE -->
+<div class="center-page" id="resultPage" style="display:none;">
+    <div class="box">
+        <h1>🎉 Completed 🎉</h1>
+        <p class="score" id="score"></p>
+        <div style="text-align:center;">
+            <button class="btn" onclick="restart()">Try Again 🔁</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* 🔥 Actual full questions (no missing data now) */
+const allQuestions=[
+{q:"What does HTML stand for?",opt:["Hyper Text Markup Language","High Tool Machine Language","Hyperlinks Tool Marking Language","None"],ans:0},
+{q:"Which tag creates a paragraph?",opt:["p","para","pg","text"],ans:0},
+{q:"Choose the correct opening tag.",opt:["</html>","<html>","</head>","<body/>"],ans:1},
+{q:"Which inserts an image?",opt:["img","image","src","pic"],ans:0},
+{q:"Which attribute for image link?",opt:["href","link","src","ref"],ans:2},
+{q:"Line break tag?",opt:["break","lb","br","line"],ans:2},
+{q:"HTML files save as?",opt:[".html",".htl",".web",".xml"],ans:0},
+{q:"CSS full form?",opt:["Creative Style System","Cascading Style Sheets","Color Style Syntax","Coding Sheet System"],ans:1},
+{q:"Bold text?",opt:["b","i","u","p"],ans:0},
+{q:"Italic text?",opt:["i","it","em","mark"],ans:0},
+{q:"Creates list?",opt:["ul","u","list","mark"],ans:0},
+{q:"Link CSS file?",opt:["link","css","style","import"],ans:0},
+{q:"Self closing tag?",opt:["p","html","img","body"],ans:2},
+{q:"Hyperlink tag?",opt:["a","link","ref","url"],ans:0},
+{q:"NOT a heading?",opt:["h1","h6","h7","h3"],ans:2},
+{q:"Checkbox?",opt:["input type='box'","check","input type='checkbox'","cb"],ans:2},
+{q:"HTML is ____ language",opt:["Programming","Scripting","Markup","Machine"],ans:2},
+{q:"Table tag?",opt:["table","tab","tbl","t"],ans:0},
+{q:"Valid color?",opt:["color=blue","color:#fff","blue()","style:blue"],ans:1},
+{q:"Big text?",opt:["big","large","bigger","xl"],ans:0},
+{q:"Form tag?",opt:["form","input","fill","box"],ans:0},
+{q:"Placeholder attribute?",opt:["hint","watermark","placeholder","text"],ans:2},
+{q:"Comments?",opt:["//","/* */","<!-- -->","#"],ans:2},
+{q:"Division tag?",opt:["div","dv","divide","section"],ans:0},
+{q:"Play video?",opt:["movie","media","video","mp4"],ans:2},
+{q:"Ordered list?",opt:["ul","ol","list","order"],ans:1},
+{q:"Add input?",opt:["input","box","enter","field"],ans:0},
+{q:"Root tag?",opt:["start","html","body","page"],ans:1},
+{q:"Tooltip uses?",opt:["title","hover","tip","alt"],ans:0}
+];
+
+/* 🟦 pick random 15 */
+const questions=allQuestions.sort(()=>Math.random()-0.5).slice(0,15);
+let index=0,answers=Array(15).fill(null);
+
+/* START */
+function startQuiz(){ show("startPage",0);show("quizPage",1);load(); }
+
+/* LOAD */
+function load(){
+    document.getElementById("qNumber").innerText=index+1;
+    let q=questions[index];
+    document.getElementById("qText").innerText=q.q;
+
+    let box=document.getElementById("optionsHere");
+    box.innerHTML="";
+    q.opt.forEach((t,i)=>{
+        let op=document.createElement("div");
+        op.className="option";op.innerText=t;
+        if(answers[index]===i)op.classList.add("selected");
+        op.onclick=()=>{answers[index]=i;load();}
+        box.appendChild(op);
+    });
+}
+
+/* NEXT PREVIOUS */
+function nextQuestion(){if(index<14){index++;load();}}
+function prevQuestion(){if(index>0){index--;load();}}
+
+/* SUBMIT */
+function submitQuiz(){
+    let s=questions.filter((q,i)=>answers[i]===q.ans).length;
+    show("quizPage",0);show("resultPage",1);
+    document.getElementById("score").innerHTML=`Your Score <b>${s}/15</b>`;
+}
+
+/* TOGGLE */
+function show(id,x){document.getElementById(id).style.display=x?"flex":"none";}
+function restart(){location.reload()}
+</script>
+</body>
+</html>
